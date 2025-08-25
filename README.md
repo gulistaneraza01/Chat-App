@@ -181,7 +181,3 @@ Vite dev server will print its URL (typically `http://localhost:5173`).
 - server/chat: `pnpm dev`
 - server/user: `pnpm dev`
 - server/mail: `pnpm dev`
-
-## License
-
-MIT
