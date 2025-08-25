@@ -1,6 +1,6 @@
 # ChatAppJs
 
-A microservices-based real-time chat application with a React (Vite + Tailwind) client and Node.js services for user management, chat/messaging (with Socket.IO), and email notifications. Local infra includes RabbitMQ (for future use) and MailHog for catching emails. Kafka is used between services for mail events.
+A microservices-based real-time chat application with a React (Vite + Tailwind) client and Node.js services for user management, chat/messaging (with Socket.IO), and email notifications. Local infra includes Kafka (message broker) and MailHog for catching emails.
 
 ## Monorepo structure
 
@@ -11,7 +11,7 @@ ChatAppJs/
     chat/          # Chat service (REST + Socket.IO)
     user/          # User service (Auth + Profiles)
     mail/          # Mail consumer service (Nodemailer + Kafka)
-    docker-compose.yml  # RabbitMQ + MailHog
+    docker-compose.yml  # MailHog (SMTP testing)
 ```
 
 ## Prerequisites
@@ -21,7 +21,7 @@ ChatAppJs/
 - MongoDB running locally
 - Redis running locally
 - Kafka + Zookeeper running locally (for mail events)
-- Docker (optional, to run RabbitMQ and MailHog via docker-compose)
+- Docker (optional, to run MailHog via docker-compose)
 
 ## Environment variables
 
@@ -86,7 +86,7 @@ cd ../mail && pnpm install
 
 ## Running infrastructure (optional but recommended)
 
-Use Docker to run RabbitMQ and MailHog:
+Use Docker to run MailHog (SMTP testing):
 
 ```
 cd server
@@ -95,7 +95,6 @@ docker compose up -d
 
 This exposes:
 
-- RabbitMQ: `5672` (AMQP), management UI at `http://localhost:15672` (admin/admin123)
 - MailHog: SMTP on `1025`, UI at `http://localhost:8025`
 
 You must also have the following running locally (outside docker):
@@ -103,6 +102,22 @@ You must also have the following running locally (outside docker):
 - MongoDB: `mongodb://localhost:27017`
 - Redis: `redis://localhost:6379`
 - Kafka (and Zookeeper): brokers on `localhost:9092`
+
+Start Kafka locally (example via Docker):
+
+```
+# Create a network for Kafka services
+docker network create kafka-net
+
+# Zookeeper
+docker run -d --name zookeeper --network kafka-net \
+  -e ALLOW_ANONYMOUS_LOGIN=yes -p 2181:2181 bitnami/zookeeper:latest
+
+# Kafka Broker
+docker run -d --name kafka --network kafka-net \
+  -e KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181 \
+  -e ALLOW_PLAINTEXT_LISTENER=yes -p 9092:9092 bitnami/kafka:latest
+```
 
 ## Start the services
 
